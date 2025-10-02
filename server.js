@@ -12,28 +12,32 @@ app.use((req, res, next) => {
 
 app.post("/create", async (req, res) => {
   try {
+    console.log("hit");
+    
     throw new Error("Create Error!");
   } catch (error) {
     console.log("Failed Create:", error.message);
-    initiateShutdown(); // panggil function shutdown
     res.status(500).send("FAILED_CREATE");
   }
 });
 
-app.get("/data", async (req, res) => {
-  // simulasi query lama
+app.get("/data/user", async (req, res) => {
   await new Promise((r) => setTimeout(r, 10000));
-  res.json({ data: "hello" });
+  res.json({ data: "hello user" });
 });
 
 const server = app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
 
-function initiateShutdown() {
+function initiateShutdown(signal) {
+  console.log(`\n⚠️ Received ${signal}. Starting graceful shutdown...`);
   isShuttingDown = true; // tolak request baru
   server.close(() => {
     console.log("All requests finished, shutting down...");
-    process.exit(1);
+    process.exit(0);
   });
 }
+
+process.on("SIGTERM", () => initiateShutdown("SIGTERM"));
+process.on("SIGINT", () => initiateShutdown("SIGINT"));
